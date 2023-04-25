@@ -1,14 +1,15 @@
 #Deep learning based denoising process
 
-#Reference : 
+#Reference  
 Yoon, Taekeun, et al. "Deep learning-based denoising for fast time-resolved flame emission spectroscopy in high-pressure combustion environment." Combustion and Flame 248 (2023): 112583.
 
-#Including:
-data		: raw dataset
+#Including
 models	 	: model strucutre python code
 utils 		: required functions 
 enivornment.yaml 	: conda environment
 DU_CNN.py	: main code
+data		: raw dataset (download following url https://drive.google.com/file/d/1yOuxJmI4tKYI3tJEJIWKf52T4SjAfaSB/view?usp=share_link
+rawdataM.mat' and locate in data folder)
 
 #Requirement
 Visual studio code
