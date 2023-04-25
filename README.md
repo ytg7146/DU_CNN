@@ -6,7 +6,7 @@ https://doi.org/10.1016/j.combustflame.2022.112583
 
 ## Included folders and files
 * data		: raw dataset (download following [file (url)](https://drive.google.com/file/d/1yOuxJmI4tKYI3tJEJIWKf52T4SjAfaSB/view?usp=share_link)
-rawdataM.mat' and locate in data folder)
+'rawdataM.mat' and locate in data folder)
 * models	 	: model strucutre python code
 * utils 		: required functions 
 * DU_CNN.py	: main code
