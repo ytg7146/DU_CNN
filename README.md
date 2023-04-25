@@ -2,6 +2,7 @@
 
 # Reference  
 Yoon, Taekeun, et al. "Deep learning-based denoising for fast time-resolved flame emission spectroscopy in high-pressure combustion environment." Combustion and Flame 248 (2023): 112583.
+https://doi.org/10.1016/j.combustflame.2022.112583
 
 # Including
 models	 	: model strucutre python code
