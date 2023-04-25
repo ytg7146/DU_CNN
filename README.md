@@ -20,7 +20,7 @@ https://doi.org/10.1016/j.combustflame.2022.112583
 $ : command <br/>
 1. Select working directory
 2. $ conda create -n n2s
-3. Change prefix in enviornment.yami
+3. Change prefix in enviornment.yaml
 4. $ conda activate n2s
 5. $ conda env create --file environment.yaml
 6. $ python DU_CNN.py
