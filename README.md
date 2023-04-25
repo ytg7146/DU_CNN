@@ -12,16 +12,15 @@ https://doi.org/10.1016/j.combustflame.2022.112583
 * DU_CNN.py	: main code
 * enivornment.yaml 	: conda environment
 
-## Requirement
-* Visual studio code
+## Requirements
 * python environment (anaconda)
 * python version 3.10.4
 
 ## Procedure
-$ : command <br/><br/>
+$ : command <br/>
 1. Select working directory
 2. $ conda create -n n2s
-3. Change prefix in enviornment.yami (bottom line)
+3. Change prefix in enviornment.yami
 4. $ conda activate n2s
 5. $ conda env create --file environment.yaml
 6. $ python DU_CNN.py
