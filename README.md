@@ -15,6 +15,7 @@ https://doi.org/10.1016/j.combustflame.2022.112583
 ## Requirements
 * python environment (anaconda)
 * python version 3.10.4
+* window 10 64bit
 
 ## Procedure
 $ : command <br/>
