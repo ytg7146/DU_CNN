@@ -3,7 +3,6 @@ import mat73
 import os
 
 import torch
-
 from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
@@ -16,34 +15,19 @@ import numpy as np
 
 from models.network_model_batch import Networkn
 
-# class MyLoss(torch.autograd.Function):
-#     @staticmethod
-#     def forward(ctx,y,y_pred,y2,y2_pred):
-#         ctx.save_for_backward(y,y_pred,y2,y2_pred)
-#         return (y_pred-y).pow(2).sum()+0.05*(y2_pred-y2).pow(2).sum()
-#     @staticmethod
-#     def backward(ctx,grad_ouput):
-#         yy,yy_pred,yy2,yy2_pred=ctx.saved_tensors
-#         grad_input=torch.neg(2.0*(yy_pred-yy)+2.0*(yy2_pred-yy2))
-#         return grad_input, None
-
-
-
 
 def main():
+
     Load_Data=0
     USE_CUDA = torch.cuda.is_available()
     print(USE_CUDA)
     device = torch.device('cuda:0' if USE_CUDA else 'cpu')
     print('학습을 진행하는 기기:',device)
 
-
     num_epochs = 101
     batch_size = 128
     learning_rate = 1e-5
 
-
-    #dataset = MNIST('./data', transform=img_transform)
     lastevalloss=[]
 
     matfile=mat73.loadmat('./data/rawdataM.mat')
@@ -58,15 +42,95 @@ def main():
     trainsnapshotmean=torch.from_numpy(np.array(snapshot_mean)).float().cuda()
     trainV=torch.from_numpy(np.array(V)).float().cuda()
     trainDvbd=torch.from_numpy(np.array(Dvbd)).float().cuda()
-    randomstate=[2,5]#,8
-    #layerss=[2,3,5,7,9,11,13,15,17,19]
 
-    #layerss=[2,3,5,7,9,11]
+    # hyperparameter search
     layerss=[7]#[2,3,5,7,11,15] [2,3,5,7,11,15]     2,3,5,7,11,15   7,14,28,56,112,224
     kernelss=[7]#[3,7,15,25,45]     3,5,7,9,11,15,21 [7,9,11,15]      3,15,45 29,45,57,115     
     channelss=[16]  #2,4,8,16,32,48,'64 [8,16,32]
     downsampless=[16]    #[32,16,8,4,2,1]   [1,2,4,8,16,32]            1,16
-    lossnum=[0] # lossfunction
+    lossnums=[0] # lossfunction 0:MSE, 1:MSE + POD, 2:MSE + normalized POD, 3:POD, 4:normalized POD
+
+
+
+    trainnum, testnum=train_test_split(range(50), test_size=0.1, random_state=2)
+    print(nkernel)
+    print(nchannel)
+    print(trainnum)
+    print(testnum)
+
+
+    tmpimg=np.array([])
+    tmplabel=np.array([])
+    train=np.array([])
+    train_label=np.array([])
+    test=np.array([])
+    test_label=np.array([])
+
+    trainshow=[]
+    trainshow_label=[]
+
+    j=0
+    for i in trainnum:
+        data1=shortdata[i][0]
+        data2=longdata[i][0]
+        trainshow.append(data1[:,2])
+        trainshow_label.append(data2[:,2])
+
+        if j==0 :
+            train=np.repeat(data1,data2.shape[1],1)
+            train_label=np.tile(data2,[1,data1.shape[1]])
+        else:
+            tmpimg=np.repeat(data1,data2.shape[1],1)
+            tmplabel=np.tile(data2,[1,data1.shape[1]])       
+            train=np.concatenate([train,tmpimg],1)
+            train_label=np.concatenate([train_label,tmplabel],1)
+        j+=1
+
+    trainshow=torch.from_numpy(np.array(trainshow)).float()
+    trainshow_label=torch.from_numpy(np.array(trainshow_label)).float()
+
+
+    testshow=[]
+    testshow_label=[]
+    j=0
+    for i in testnum:
+        data1=shortdata[i][0]
+        data2=longdata[i][0]
+        testshow.append(data1[:,2])
+        testshow_label.append(data2[:,2])
+        if j==0 :
+            test=np.repeat(data1,data2.shape[1],1)
+            test_label=np.tile(data2,[1,data1.shape[1]])
+        else:
+            tmpimg=np.repeat(data1,data2.shape[1],1)
+            tmplabel=np.tile(data2,[1,data1.shape[1]])       
+            test=np.concatenate([test,tmpimg],1)
+            test_label=np.concatenate([test_label,tmplabel],1)
+        j+=1
+
+    testshow=torch.from_numpy(np.array(testshow)).float()
+    testshow_label=torch.from_numpy(np.array(testshow_label)).float()
+
+    train=torch.from_numpy(np.transpose(train)).float()
+    train_label=torch.from_numpy(np.transpose(train_label)).float()
+    traindataset=TensorDataset(train,train_label)
+    test=torch.from_numpy(np.transpose(test)).float()
+    test_label=torch.from_numpy(np.transpose(test_label)).float()
+    testdataset=TensorDataset(test,test_label)
+
+
+    traindataloader = DataLoader(traindataset, batch_size=batch_size, shuffle=True, num_workers=6,persistent_workers=True)
+    
+    testloader = DataLoader(testdataset, batch_size=32, shuffle=False)
+
+    #criterion = nn.L1Loss()
+    criterion = nn.MSELoss()
+
+
+
+
+
+
 
     for downsample in downsampless:    
         for nlayer in layerss:
@@ -78,89 +142,12 @@ def main():
                     if not os.path.exists('./{}layers/{}kernel_{}channel_down{}'.format(nlayer,nkernel,nchannel,downsample)):
                         os.mkdir('./{}layers/{}kernel_{}channel_down{}'.format(nlayer,nkernel,nchannel,downsample))
                         
-                    for ijij in lossnum:  
+                    for lossnum in lossnums:  
                         
-                        if not os.path.exists('./{}layers/{}kernel_{}channel_down{}/test{}'.format(nlayer,nkernel,nchannel,downsample,ijij)):
-                            os.mkdir('./{}layers/{}kernel_{}channel_down{}/test{}'.format(nlayer,nkernel,nchannel,downsample,ijij))
-                            os.mkdir('./{}layers/{}kernel_{}channel_down{}/test{}/tut_img'.format(nlayer,nkernel,nchannel,downsample,ijij))
-                        FPATH='./{}layers/{}kernel_{}channel_down{}/test{}'.format(nlayer,nkernel,nchannel,downsample,ijij)
-                        
-
-
-
-                        trainnum, testnum=train_test_split(range(50), test_size=0.1, random_state=2)
-                        print(nkernel)
-                        print(nchannel)
-                        print(trainnum)
-                        print(testnum)
-
-
-                        tmpimg=np.array([])
-                        tmplabel=np.array([])
-                        train=np.array([])
-                        train_label=np.array([])
-                        test=np.array([])
-                        test_label=np.array([])
-
-                        trainshow=[]
-                        trainshow_label=[]
-
-                        j=0
-                        for i in trainnum:
-                            data1=shortdata[i][0]
-                            data2=longdata[i][0]
-                            trainshow.append(data1[:,2])
-                            trainshow_label.append(data2[:,2])
-
-                            if j==0 :
-                                train=np.repeat(data1,data2.shape[1],1)
-                                train_label=np.tile(data2,[1,data1.shape[1]])
-                            else:
-                                tmpimg=np.repeat(data1,data2.shape[1],1)
-                                tmplabel=np.tile(data2,[1,data1.shape[1]])       
-                                train=np.concatenate([train,tmpimg],1)
-                                train_label=np.concatenate([train_label,tmplabel],1)
-                            j+=1
-
-                        trainshow=torch.from_numpy(np.array(trainshow)).float()
-                        trainshow_label=torch.from_numpy(np.array(trainshow_label)).float()
-
-
-                        testshow=[]
-                        testshow_label=[]
-                        j=0
-                        for i in testnum:
-                            data1=shortdata[i][0]
-                            data2=longdata[i][0]
-                            testshow.append(data1[:,2])
-                            testshow_label.append(data2[:,2])
-                            if j==0 :
-                                test=np.repeat(data1,data2.shape[1],1)
-                                test_label=np.tile(data2,[1,data1.shape[1]])
-                            else:
-                                tmpimg=np.repeat(data1,data2.shape[1],1)
-                                tmplabel=np.tile(data2,[1,data1.shape[1]])       
-                                test=np.concatenate([test,tmpimg],1)
-                                test_label=np.concatenate([test_label,tmplabel],1)
-                            j+=1
-
-                        testshow=torch.from_numpy(np.array(testshow)).float()
-                        testshow_label=torch.from_numpy(np.array(testshow_label)).float()
-                    
-                        train=torch.from_numpy(np.transpose(train)).float()
-                        train_label=torch.from_numpy(np.transpose(train_label)).float()
-                        traindataset=TensorDataset(train,train_label)
-                        test=torch.from_numpy(np.transpose(test)).float()
-                        test_label=torch.from_numpy(np.transpose(test_label)).float()
-                        testdataset=TensorDataset(test,test_label)
-
-
-                        traindataloader = DataLoader(traindataset, batch_size=batch_size, shuffle=True, num_workers=6,persistent_workers=True)
-                        
-                        testloader = DataLoader(testdataset, batch_size=32, shuffle=False)
-
-                        #criterion = nn.L1Loss()
-                        criterion = nn.MSELoss()
+                        if not os.path.exists('./{}layers/{}kernel_{}channel_down{}/test{}'.format(nlayer,nkernel,nchannel,downsample,lossnum)):
+                            os.mkdir('./{}layers/{}kernel_{}channel_down{}/test{}'.format(nlayer,nkernel,nchannel,downsample,lossnum))
+                            os.mkdir('./{}layers/{}kernel_{}channel_down{}/test{}/tut_img'.format(nlayer,nkernel,nchannel,downsample,lossnum))
+                        FPATH='./{}layers/{}kernel_{}channel_down{}/test{}'.format(nlayer,nkernel,nchannel,downsample,lossnum)
                         
                         
                         model = Networkn(nlayer, downsample,nkernel,nchannel,in_nc=1 , out_nc=1, act_mode='BR').cuda()
@@ -201,23 +188,23 @@ def main():
                                 # ===================forward=====================
                                 
                                 output = model(spec.unsqueeze(1))
-                                if ijij == 0:
+                                if lossnum == 0:  
                                     loss =criterion(output.squeeze(), label)
-                                elif ijij == 1:
+                                elif lossnum == 1:
                                     ouputpca=torch.matmul((output.squeeze()).sub(randint*trainsnapshotmean),trainV)
                                     labelpca=torch.matmul((label).sub(randint*trainsnapshotmean),trainV)
                                     loss =0.9*criterion(output.squeeze(), label) + 0.1*criterion(ouputpca, labelpca)
-                                elif ijij == 2:
+                                elif lossnum == 2:
                                     ouputpca=torch.matmul((output.squeeze()).sub(randint*trainsnapshotmean),trainV)
                                     labelpca=torch.matmul((label).sub(randint*trainsnapshotmean),trainV)
                                     normouputpca=(ouputpca-trainDvbd[:,1].T)/(trainDvbd[:,0].T-trainDvbd[:,1].T).repeat(labelpca.shape[0],1)
                                     normlabelpca=(labelpca-trainDvbd[:,1].T)/(trainDvbd[:,0].T-trainDvbd[:,1].T).repeat(labelpca.shape[0],1)
                                     loss =0.9*criterion(output.squeeze(), label) + 0.1*criterion(normouputpca, normlabelpca)
-                                elif ijij == 3:
+                                elif lossnum == 3:
                                     ouputpca=torch.matmul((output.squeeze()).sub(randint*trainsnapshotmean),trainV)
                                     labelpca=torch.matmul((label).sub(randint*trainsnapshotmean),trainV)
                                     loss = criterion(ouputpca, labelpca)
-                                elif ijij == 4:
+                                elif lossnum == 4:
                                     ouputpca=torch.matmul((output.squeeze()).sub(randint*trainsnapshotmean),trainV)
                                     labelpca=torch.matmul((label).sub(randint*trainsnapshotmean),trainV)
                                     normouputpca=(ouputpca-trainDvbd[:,1].T)/(trainDvbd[:,0].T-trainDvbd[:,1].T).repeat(labelpca.shape[0],1)
