@@ -9,8 +9,9 @@ https://doi.org/10.1016/j.combustflame.2022.112583
 'rawdataM.mat' and locate in data folder)
 * models	 	: model strucutre python code
 * utils 		: required functions 
-* DU_CNN.py	: main code
+* main.py	: main code
 * enivornment.yaml 	: conda environment
+* config.yaml 	: configuration
 
 ## Requirements
 * python environment (anaconda)
@@ -20,20 +21,13 @@ https://doi.org/10.1016/j.combustflame.2022.112583
 ## Procedure
 $ : command <br/>
 1. Select working directory
-2. $ conda create -n n2s
-3. Change prefix in enviornment.yaml
-4. $ conda activate n2s
+2. Download [data](https://drive.google.com/file/d/1yOuxJmI4tKYI3tJEJIWKf52T4SjAfaSB/view?usp=share_link) in ./data/
+3. $ conda create -n DUCNN
+4. $ conda activate DUCNN
 5. $ conda env create --file environment.yaml
-6. $ python DU_CNN.py
+6. $ python main.py
  
  
 ### Note1
 If the GPU memory is not enough,
 Reduce batch_size
-
-### Note2
-Change the model structure using following parameter
-    layerss=[5,11]
-    kernelss=[7,15,25]
-    channelss=[32]
-    downsampless=[1,16]  
