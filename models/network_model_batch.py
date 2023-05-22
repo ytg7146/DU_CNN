@@ -46,3 +46,4 @@ class Networkn(nn.Module):
         x = self.model(x)
         x = self.up(x)
         return x
+    

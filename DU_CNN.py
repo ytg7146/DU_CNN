@@ -44,9 +44,9 @@ def main():
     trainDvbd=torch.from_numpy(np.array(Dvbd)).float().cuda()
 
     # hyperparameter search
-    layerss=[7]#[2,3,5,7,11,15] [2,3,5,7,11,15]     2,3,5,7,11,15   7,14,28,56,112,224
+    layerss=[5]#[2,3,5,7,11,15] [2,3,5,7,11,15]     2,3,5,7,11,15   7,14,28,56,112,224
     kernelss=[7]#[3,7,15,25,45]     3,5,7,9,11,15,21 [7,9,11,15]      3,15,45 29,45,57,115     
-    channelss=[16]  #2,4,8,16,32,48,'64 [8,16,32]
+    channelss=[8]  #2,4,8,16,32,48,'64 [8,16,32]
     downsampless=[16]    #[32,16,8,4,2,1]   [1,2,4,8,16,32]            1,16
     lossnums=[0] # lossfunction 0:MSE, 1:MSE + POD, 2:MSE + normalized POD, 3:POD, 4:normalized POD
 
