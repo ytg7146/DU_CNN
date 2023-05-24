@@ -25,12 +25,7 @@ def main():
     #dataset loading
     trainloader, testloader= get_dataloader(config, data, trainnum, testnum)
     #make directory for save the results
-    if not os.path.exists('./{}layers_{}kernel_{}channel_down{}_loss{}'.format(nlayer,nkernel,nchannel,ndownsample,lossnum)):
-        os.mkdir('./{}layers_{}kernel_{}channel_down{}_loss{}'.format(nlayer,nkernel,nchannel,ndownsample,lossnum))
-    if not os.path.exists('./{}layers_{}kernel_{}channel_down{}_loss{}/logs'.format(nlayer,nkernel,nchannel,ndownsample,lossnum)):
-        os.mkdir('./{}layers_{}kernel_{}channel_down{}_loss{}/logs'.format(nlayer,nkernel,nchannel,ndownsample,lossnum))
-        
-    FPATH='./{}layers_{}kernel_{}channel_down{}_loss{}'.format(nlayer,nkernel,nchannel,ndownsample,lossnum)
+    FPATH = setup_log_directory(config)
 
     # model initailization
     criterion = nn.MSELoss()
@@ -43,7 +38,7 @@ def main():
 
     # load pretrained model
     if config["Load_Data"] == 1 and os.path.isfile(FPATH+"checkpoint.ckpt"):
-        model, optimizer, epoch, loss_ = loadnetwork(FPATH+"/checkpoint.ckpt")
+        model, optimizer, epoch, loss_ = load_network(FPATH+"/checkpoint.ckpt")
 
     #training
     total_epochs= config["num_epochs"] + 1

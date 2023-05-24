@@ -41,7 +41,18 @@ def get_dataloader(config, data,trainnum,testnum):
 
     return trainloader, testloader
 
-def loadnetwork(PATH,model, optimizer):
+def setup_log_directory(config):
+    nlayer, nkernel, nchannel, ndownsample, lossnum= config["layers"],config["kernels"],config["channels"], config["downsamples"], config["lossnum"]
+    if not os.path.exists('./{}layers_{}kernel_{}channel_down{}_loss{}'.format(nlayer,nkernel,nchannel,ndownsample,lossnum)):
+        os.mkdir('./{}layers_{}kernel_{}channel_down{}_loss{}'.format(nlayer,nkernel,nchannel,ndownsample,lossnum))
+    if not os.path.exists('./{}layers_{}kernel_{}channel_down{}_loss{}/logs'.format(nlayer,nkernel,nchannel,ndownsample,lossnum)):
+        os.mkdir('./{}layers_{}kernel_{}channel_down{}_loss{}/logs'.format(nlayer,nkernel,nchannel,ndownsample,lossnum))
+    FPATH = './{}layers_{}kernel_{}channel_down{}_loss{}'.format(nlayer,nkernel,nchannel,ndownsample,lossnum)
+
+    return FPATH 
+
+
+def load_network(PATH,model, optimizer):
     checkpoint = torch.load(PATH)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
